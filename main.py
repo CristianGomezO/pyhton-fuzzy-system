@@ -22,7 +22,6 @@ rule3 = ctrl.Rule(temperature['good'] & humidity['good'], climatization_action['
 climatization_ctrl = ctrl.ControlSystem([rule1, rule2, rule3])
 climatization_simulation = ctrl.ControlSystemSimulation(climatization_ctrl)
 
-# Función para evaluar la climatización
 def evaluate_climatization():
     try:
         temp = temperature_var.get()
@@ -32,21 +31,34 @@ def evaluate_climatization():
         climatization_simulation.compute()
 
         output = climatization_simulation.output
-        if 'climatization_action' in output:
-            action_value = int(output['climatization_action'])
-            if action_value <= 3:
-                recommendation = 'Acción alta: Aumentar la climatización'
-            elif action_value <= 7:
-                recommendation = 'Acción media: Climatización moderada'
-            else:
-                recommendation = 'Acción baja: Reducir la climatización'
-            result_label.config(text=f'Recomendación: {recommendation}')
+        action_value = int(output['climatization_action'])
+        
+        # Determinar la recomendación
+        if action_value <= 3:
+            recommendation = 'Acción alta: Aumentar la climatización'
+        elif action_value <= 7:
+            recommendation = 'Acción media: Climatización moderada'
         else:
-            result_label.config(text='Error: Clave de salida no encontrada')
+            recommendation = 'Acción baja: Reducir la climatización'
+        
+        # Actualizar las etiquetas con hechos y recomendaciones
+        result_label.config(text=f'Recomendación: {recommendation}')
+        
+        # Mostrar hechos y reglas activadas
+        facts_text = (
+            f"Hechos:\n"
+            f"- Temperatura: {temp}°C\n"
+            f"- Humedad: {hum}%\n"
+        )
+        
+        details_label.config(
+            text=facts_text,
+            wraplength=300
+        )
     except ValueError:
         result_label.config(text='Error: Entrada inválida')
     except Exception as e:
-        result_label.config(text=f'Error: {str(e)}')
+        result_label.config(text=f'No hay recomendación para estas entradas')
 
 # Configuración de la interfaz gráfica
 root = tk.Tk()
@@ -80,5 +92,8 @@ tk.Button(frame, text="Evaluar", command=evaluate_climatization, bg='#4CAF50', f
 result_label = tk.Label(frame, text="", bg='#ffffff', font=('Arial', 12, 'bold'), wraplength=300)
 result_label.pack()
 
-root.geometry("400x300")
+details_label = tk.Label(frame, text="", bg='#ffffff', font=('Arial', 10), wraplength=300)
+details_label.pack()
+
+root.geometry("500x400")
 root.mainloop()
